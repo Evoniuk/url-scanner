@@ -1,0 +1,11 @@
+#!/bin/zsh
+for URL in $(grep -rEhoI "(http|https)://[a-zA-Z0-9./?=_-]*" | sort -u) # get all URLs and remove duplicates
+do
+    RESPONSE=$(curl -sI -o /dev/null -w "%{http_code}" $URL)    # get response code
+    if [[ "$RESPONSE" =~ ^(4|5) ]]                              # only look at 4xx and 5xx responses
+    then
+        echo "$RESPONSE | $URL"
+        grep -rIn "$URL" | awk -F: '{print "    " $1 ": " $2}'  # print file name and line number
+        echo ""
+    fi
+done
