@@ -1,11 +1,26 @@
 #!/bin/zsh
-for URL in $(grep -rEhoI "(http|https)://[a-zA-Z0-9./?=_-]*" | sort -u) # get all URLs and remove duplicates
-do
-    RESPONSE=$(curl -sI -o /dev/null -w "%{http_code}" $URL)    # get response code
-    if [[ "$RESPONSE" =~ ^(4|5) ]]                              # only look at 4xx and 5xx responses
-    then
-        echo "$RESPONSE | $URL"
-        grep -rIn "$URL" | awk -F: '{print "    " $1 ": " $2}'  # print file name and line number
-        echo ""
-    fi
+
+function scan_urls()
+{
+    for URL in $(grep -rEhoI "(http|https)://[a-zA-Z0-9./?=_-]*" | sort -u) # get all URLs and remove duplicates
+    do
+        RESPONSE=$(curl -sI -o /dev/null -w "%{http_code}" $URL)            # get response code
+        if [[ "$RESPONSE" =~ "^${1:-4|2}" ]]                                # look for provided error, otherwise
+        then                                                                #   look for 400 and 500 errors
+            echo "$RESPONSE | $URL"
+            grep -rIn "$URL" | awk -F: '{print "    " $1 ": " $2}'          # print file name and line number
+            echo ""
+        fi
+    done
+}
+
+while getopts ":e:" opt; do
+    case $opt in
+        e  ) scan_urls $OPTARG
+             exit 0 ;;
+        \? ) echo 'Usage: surl [-e response_code]'
+             exit 1 ;;
+    esac
 done
+
+scan_urls
