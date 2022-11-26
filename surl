@@ -14,11 +14,11 @@ function scan_urls()
     done
 }
 
-while getopts ":e:" opt; do
+while getopts ":r:" opt; do
     case $opt in
-        e  ) scan_urls $OPTARG
+        r  ) scan_urls $OPTARG
              exit 0 ;;
-        \? ) echo 'Usage: surl [-e response_code]'
+        \? ) echo 'Usage: surl [-r response_code]'
              exit 1 ;;
     esac
 done
